@@ -1,10 +1,11 @@
 
 from im2mesh.data.core import (
-    Shapes3dDataset, collate_remove_none, worker_init_fn
+    Shapes3dDataset, collate_remove_none, worker_init_fn,
+    Pix3DDataset
 )
 from im2mesh.data.fields import (
     IndexField, CategoryField, ImagesField, PointsField,
-    VoxelsField, PointCloudField, MeshField,
+    VoxelsField, PointCloudField, MeshField,Images_masks_Field,
 )
 from im2mesh.data.transforms import (
     PointcloudNoise, SubsamplePointcloud,
@@ -12,7 +13,7 @@ from im2mesh.data.transforms import (
 )
 from im2mesh.data.real import (
     KittiDataset, OnlineProductDataset,
-    ImageDataset,
+    ImageDataset
 )
 
 
@@ -21,6 +22,7 @@ __all__ = [
     Shapes3dDataset,
     collate_remove_none,
     worker_init_fn,
+    Pix3DDataset,
     # Fields
     IndexField,
     CategoryField,
@@ -29,6 +31,7 @@ __all__ = [
     VoxelsField,
     PointCloudField,
     MeshField,
+    Images_masks_Field,
     # Transforms
     PointcloudNoise,
     SubsamplePointcloud,
@@ -36,5 +39,5 @@ __all__ = [
     # Real Data
     KittiDataset,
     OnlineProductDataset,
-    ImageDataset,
+    ImageDataset
 ]

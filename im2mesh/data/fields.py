@@ -6,6 +6,8 @@ import numpy as np
 import trimesh
 from im2mesh.data.core import Field
 from im2mesh.utils import binvox_rw
+### load the position file
+import yaml
 
 
 class IndexField(Field):
@@ -48,7 +50,6 @@ class CategoryField(Field):
             files: files
         '''
         return True
-
 
 class ImagesField(Field):
     ''' Image Field.
@@ -320,4 +321,91 @@ class MeshField(Field):
             files: files
         '''
         complete = (self.file_name in files)
+        return complete
+
+
+class Images_masks_Field(Field):
+    ''' Image Field.
+
+    It is the field used for loading images.
+
+    Args:
+        folder_name (str): folder name
+        transform (list): list of transformations applied to loaded images
+        extension (str): image extension
+        random_view (bool): whether a random view should be used
+        with_camera (bool): whether camera data should be provided
+    '''
+    def __init__(self, img_file_name,mask_file_name, transform=None,
+                 random_view=False, with_camera=False):
+        self.img_file_name=img_file_name
+        self.mask_file_name=mask_file_name
+        self.transform = transform
+        self.random_view = random_view
+        self.with_camera = with_camera
+
+    def load(self, model_path, idx, category):
+        ''' Loads the data point.
+
+        Args:
+            model_path (str): path to model
+            idx (int): ID of data point
+            category (int): index of category
+        '''
+        img_file_path=os.path.join(model_path, self.img_file_name)
+        mask_file_path=os.path.join(model_path, self.mask_file_name)
+        #print(img_file_path,mask_file_path)
+        image=Image.open(img_file_path).convert('RGB')
+        #mask=Image.open(mask_file_path)
+
+        if self.transform is not None:
+            #image = self.transform(image)
+            #mask = self.transform(mask)
+            try:
+            # Attempt to apply the transform
+                image = self.transform(image)
+            except Exception as e:
+                # Handle the exception
+                print(f"Transform failed with error: {e}")
+                image = None  # Or however you want to handle it
+
+        width,height=image.size
+        print(img_file_path,width,height)
+        # width,height=mask.size
+        # print(mask_file_path,width,height)
+
+        data = {
+            None: image,
+            #'mask': mask,
+        }
+
+        # if self.with_camera:
+        #     # load metadata_pix3d.yaml
+        #     metadata_file_path='data/metadata_pix3d.yaml'
+        #     _, model_name=os.path.split(model_path)
+        #     with open(metadata_file_path,'r') as f:
+        #         metadata=yaml.load(f)
+        #     for model, properties in metadata.items():
+        #         if properties['model']==model_name:
+        #             rot_mat=np.array(properties['rot_mat']).reshape(3,3)
+        #             trans_mat=np.array(properties['trans_mat']).reshape(3,1)
+        #             cam_position=np.array(properties['cam_position'])
+        #             focal_length=np.array(properties['focal_length'])
+
+        #             K=np.eye(3)*focal_length
+        #             inhomo_RT=np.hstack((rot_mat,trans_mat))
+        #             RT=np.vstack((inhomo_RT,np.array([0,0,0,1])))
+        #             data['world_mat']=RT
+        #             data['camera_mat']=K
+
+        return data
+
+    def check_complete(self, files):
+        ''' Check if field is complete.
+        
+        Args:
+            files: files
+        '''
+        complete = (self.folder_name in files)
+        # TODO: check camera
         return complete
