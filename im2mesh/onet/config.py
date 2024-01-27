@@ -26,6 +26,7 @@ def get_model(cfg, device=None, dataset=None, **kwargs):
     encoder_kwargs = cfg['model']['encoder_kwargs']
     encoder_latent_kwargs = cfg['model']['encoder_latent_kwargs']
 
+
     decoder = models.decoder_dict[decoder](
         dim=dim, z_dim=z_dim, c_dim=c_dim,
         **decoder_kwargs
@@ -39,6 +40,7 @@ def get_model(cfg, device=None, dataset=None, **kwargs):
     else:
         encoder_latent = None
 
+
     if encoder == 'idx':
         encoder = nn.Embedding(len(dataset), c_dim)
     elif encoder is not None:
@@ -48,8 +50,10 @@ def get_model(cfg, device=None, dataset=None, **kwargs):
         )
     else:
         encoder = None
+    
 
     p0_z = get_prior_z(cfg, device)
+
     model = models.OccupancyNetwork(
         decoder, encoder, encoder_latent, p0_z, device=device
     )
@@ -113,11 +117,13 @@ def get_prior_z(cfg, device, **kwargs):
         device (device): pytorch device
     '''
     z_dim = cfg['model']['z_dim']
-    p0_z = dist.Normal(
-        torch.zeros(z_dim, device=device),
-        torch.ones(z_dim, device=device)
-    )
-
+    if z_dim!=0:
+        p0_z = dist.Normal(
+            torch.zeros(z_dim, device=device),
+            torch.ones(z_dim, device=device)
+        )
+    else:
+        p0_z = None
     return p0_z
 
 
@@ -130,7 +136,7 @@ def get_data_fields(mode, cfg):
     '''
     points_transform = data.SubsamplePoints(cfg['data']['points_subsample'])
     with_transforms = cfg['model']['use_camera']
-
+    
     fields = {}
     fields['points'] = data.PointsField(
         cfg['data']['points_file'], points_transform,

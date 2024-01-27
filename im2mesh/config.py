@@ -151,6 +151,24 @@ def get_dataset(mode, cfg, return_idx=False, return_category=False):
             split=split,
             categories=categories,
         )
+    elif dataset_type== 'pix3d':
+        fields=method_dict[method].config.get_data_fields(mode,cfg)
+        inputs_field=get_inputs_field(mode,cfg)
+        #inputs_field=None
+        if inputs_field is not None:
+            fields['inputs'] = inputs_field
+
+        if return_idx:
+            fields['idx'] = data.IndexField()
+
+        if return_category:
+            fields['category'] = data.CategoryField()
+
+        dataset = data.Pix3DDataset(
+            dataset_folder, fields,
+            split=split,
+            categories=categories,
+        )
     elif dataset_type == 'kitti':
         dataset = data.KittiDataset(
             dataset_folder, img_size=cfg['data']['img_size'],
@@ -187,25 +205,31 @@ def get_inputs_field(mode, cfg):
     if input_type is None:
         inputs_field = None
     elif input_type == 'img':
-        if mode == 'train' and cfg['data']['img_augment']:
-            resize_op = transforms.RandomResizedCrop(
-                cfg['data']['img_size'], (0.75, 1.), (1., 1.))
-        else:
-            resize_op = transforms.Resize((cfg['data']['img_size']))
+        # if mode == 'train' and cfg['data']['img_augment']:
+        #     resize_op = transforms.RandomResizedCrop(
+        #         cfg['data']['img_size'], (0.75, 1.), (1., 1.))
+        # else:
+        #     resize_op = transforms.Resize((cfg['data']['img_size']))
 
+        #TODO: need to make image and mask go through the same transform
+        resize_op = transforms.Resize((cfg['data']['img_size']))
         transform = transforms.Compose([
             resize_op, transforms.ToTensor(),
         ])
-
+        #print(transform)
+        
         with_camera = cfg['data']['img_with_camera']
 
         if mode == 'train':
-            random_view = True
+            #random_view = True
+            ### changed here
+            random_view = False
         else:
             random_view = False
-
-        inputs_field = data.ImagesField(
-            cfg['data']['img_folder'], transform,
+        
+        # get images and masks, random_view is of no use here
+        inputs_field = data.Images_masks_Field(
+            cfg['data']['img_file'], cfg['data']['mask_file'],transform,
             with_camera=with_camera, random_view=random_view
         )
     elif input_type == 'pointcloud':

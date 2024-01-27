@@ -148,7 +148,6 @@ class PointsField(Field):
             category (int): index of category
         '''
         file_path = os.path.join(model_path, self.file_name)
-
         points_dict = np.load(file_path)
         points = points_dict['points']
         # Break symmetry if given in float16:
@@ -354,31 +353,31 @@ class Images_masks_Field(Field):
         '''
         img_file_path=os.path.join(model_path, self.img_file_name)
         mask_file_path=os.path.join(model_path, self.mask_file_name)
-        #print(img_file_path,mask_file_path)
-        image=Image.open(img_file_path).convert('RGB')
-        #mask=Image.open(mask_file_path)
+        try:
+            image=Image.open(img_file_path)
+            mask=Image.open(mask_file_path)
+            #print('image can be opened')
+        except IOError:
+            print('failed to open the image and the mask')
 
         if self.transform is not None:
-            #image = self.transform(image)
-            #mask = self.transform(mask)
             try:
             # Attempt to apply the transform
                 image = self.transform(image)
+                mask = self.transform(mask)
+                #print('image can be transformed')
             except Exception as e:
                 # Handle the exception
                 print(f"Transform failed with error: {e}")
-                image = None  # Or however you want to handle it
-
-        width,height=image.size
-        print(img_file_path,width,height)
-        # width,height=mask.size
-        # print(mask_file_path,width,height)
+                image = None  
+                mask=None
 
         data = {
             None: image,
-            #'mask': mask,
+            'mask': mask,
         }
 
+        #TODO:too slow this part
         # if self.with_camera:
         #     # load metadata_pix3d.yaml
         #     metadata_file_path='data/metadata_pix3d.yaml'
