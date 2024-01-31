@@ -383,7 +383,7 @@ class Images_masks_Field(Field):
         #     metadata_file_path='data/metadata_pix3d.yaml'
         #     _, model_name=os.path.split(model_path)
         #     with open(metadata_file_path,'r') as f:
-        #         metadata=yaml.load(f)
+        #         metadata=yaml.load(f, Loader=yaml.FullLoader)
         #     for model, properties in metadata.items():
         #         if properties['model']==model_name:
         #             rot_mat=np.array(properties['rot_mat']).reshape(3,3)
