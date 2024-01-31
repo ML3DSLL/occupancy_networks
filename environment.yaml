@@ -1,4 +1,4 @@
-name: mesh_funcspace
+name: mesh_funcspace2
 channels:
   - conda-forge
   - pytorch
