@@ -212,7 +212,7 @@ def get_inputs_field(mode, cfg):
         #     resize_op = transforms.Resize((cfg['data']['img_size']))
 
         #TODO: need to make image and mask go through the same transform
-        resize_op = transforms.Resize((cfg['data']['img_size']))
+        resize_op = transforms.Resize((cfg['data']['img_size'],cfg['data']['img_size']))
         transform = transforms.Compose([
             resize_op, transforms.ToTensor(),
         ])
@@ -229,7 +229,7 @@ def get_inputs_field(mode, cfg):
         
         # get images and masks, random_view is of no use here
         inputs_field = data.Images_masks_Field(
-            cfg['data']['img_file'], cfg['data']['mask_file'],transform,
+            cfg['data']['img_file'], cfg['data']['mask_file'],cfg['data']['metadata_file'],transform,
             with_camera=with_camera, random_view=random_view
         )
     elif input_type == 'pointcloud':

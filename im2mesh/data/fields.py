@@ -335,10 +335,11 @@ class Images_masks_Field(Field):
         random_view (bool): whether a random view should be used
         with_camera (bool): whether camera data should be provided
     '''
-    def __init__(self, img_file_name,mask_file_name, transform=None,
+    def __init__(self, img_file_name,mask_file_name, metadata_file_name,transform=None,
                  random_view=False, with_camera=False):
         self.img_file_name=img_file_name
         self.mask_file_name=mask_file_name
+        self.metadata_file_name=metadata_file_name
         self.transform = transform
         self.random_view = random_view
         self.with_camera = with_camera
@@ -377,25 +378,21 @@ class Images_masks_Field(Field):
             'mask': mask,
         }
 
-        #TODO:too slow this part
-        # if self.with_camera:
-        #     # load metadata_pix3d.yaml
-        #     metadata_file_path='data/metadata_pix3d.yaml'
-        #     _, model_name=os.path.split(model_path)
-        #     with open(metadata_file_path,'r') as f:
-        #         metadata=yaml.load(f)
-        #     for model, properties in metadata.items():
-        #         if properties['model']==model_name:
-        #             rot_mat=np.array(properties['rot_mat']).reshape(3,3)
-        #             trans_mat=np.array(properties['trans_mat']).reshape(3,1)
-        #             cam_position=np.array(properties['cam_position'])
-        #             focal_length=np.array(properties['focal_length'])
-
-        #             K=np.eye(3)*focal_length
-        #             inhomo_RT=np.hstack((rot_mat,trans_mat))
-        #             RT=np.vstack((inhomo_RT,np.array([0,0,0,1])))
-        #             data['world_mat']=RT
-        #             data['camera_mat']=K
+        if self.with_camera:
+            # load metadata_pix3d.yaml
+            metadata_file_path=os.path.join(model_path,self.metadata_file_name)
+            with open(metadata_file_path,'r') as f:
+                metadata=yaml.load(f)
+            for model, properties in metadata.items():
+                rot_mat=np.array(properties['rot_mat']).reshape(3,3)
+                trans_mat=np.array(properties['trans_mat']).reshape(3,1)
+                #cam_position=np.array(properties['cam_position'])
+                focal_length=np.array(properties['focal_length'])
+                K=np.eye(3)*focal_length
+                inhomo_RT=np.hstack((rot_mat,trans_mat))
+                RT=np.vstack((inhomo_RT,np.array([0,0,0,1])))
+                data['world_mat']=RT
+                data['camera_mat']=K
 
         return data
 
