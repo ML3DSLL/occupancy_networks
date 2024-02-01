@@ -215,6 +215,8 @@ class Pix3DDataset(data.Dataset):
                 {'category': c, 'model': m}
                 for m in models_c
             ]
+        # for item in self.models:
+        #     print(item)
 
     def __len__(self):
         ''' Returns the length of the dataset.
@@ -237,14 +239,14 @@ class Pix3DDataset(data.Dataset):
         for field_name, field in self.fields.items():
             try:
                 field_data = field.load(model_path, idx, c_idx)
-                #print('succeeded:',model_path, c_idx,field_name)
+                #print((field_name, model_path,self.dataset_folder,category, model))
             except Exception:
                 if self.no_except:
                     logger.warn(
-                        'Error occured when loading field %s of model %s'
-                        % (field_name, model)
+                        'Error occured when loading field %s of model path %s, dataset folder: %s, category: %s, model: %s'
+                        % (field_name, model_path,self.dataset_folder,category, model)
                     )
-                    print('failed:',model_path, c_idx,field_name)
+                    #print('failed:',model_path, c_idx,field_name)
                     return None
                 else:
                     raise
@@ -289,7 +291,6 @@ def collate_remove_none(batch):
     Args:
         batch: batch
     '''
-
     batch = list(filter(lambda x: x is not None, batch))
     return data.dataloader.default_collate(batch)
 
