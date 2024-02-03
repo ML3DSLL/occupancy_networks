@@ -37,7 +37,7 @@ class Shapes3dDataset(data.Dataset):
     '''
 
     def __init__(self, dataset_folder, fields, split=None,
-                 categories=None, no_except=True, transform=None):
+                 categories=None, no_except=False, transform=None):
         ''' Initialization of the the 3D shape dataset.
 
         Args:
@@ -162,7 +162,7 @@ class Pix3DDataset(data.Dataset):
     '''
 
     def __init__(self, dataset_folder, fields, split=None,
-                 categories=None, no_except=True, transform=None):
+                 categories=None, no_except=False, transform=None):
         ''' Initialization of the the 3D shape dataset.
 
         Args:

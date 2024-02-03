@@ -359,7 +359,7 @@ class Images_masks_Field(Field):
             mask=Image.open(mask_file_path)
             #print('image can be opened')
         except IOError:
-            print('failed to open the image and the mask')
+            print(f'failed to open the image and the mask from {img_file_path} and {mask_file_path}')
 
         if self.transform is not None:
             try:
@@ -382,7 +382,7 @@ class Images_masks_Field(Field):
             # load metadata_pix3d.yaml
             metadata_file_path=os.path.join(model_path,self.metadata_file_name)
             with open(metadata_file_path,'r') as f:
-                metadata=yaml.load(f)
+                metadata=yaml.load(f, Loader=yaml.FullLoader)
             for model, properties in metadata.items():
                 rot_mat=np.array(properties['rot_mat']).reshape(3,3)
                 trans_mat=np.array(properties['trans_mat']).reshape(3,1)
