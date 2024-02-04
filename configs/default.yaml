@@ -26,16 +26,17 @@ data:
   pointcloud_noise: 0.05
   voxels_file: 'model.binvox'
   with_transforms: false
+  posedim: 6
 model:
   decoder: simple
-  encoder: resnet18
+  encoder: encoder_convnext
   encoder_latent: null
   decoder_kwargs: {}
   encoder_kwargs: {}
   encoder_latent_kwargs: {}
   multi_gpu: false
   c_dim: 512
-  z_dim: 64
+  z_dim: 80
   use_camera: false
   dmc_weight_prior: 10.
 training:

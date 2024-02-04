@@ -1,4 +1,4 @@
-
+import math 
 import torch.nn as nn
 import torch.nn.functional as F
 from im2mesh.layers import (
@@ -6,6 +6,126 @@ from im2mesh.layers import (
     CBatchNorm1d, CBatchNorm1d_legacy,
     ResnetBlockConv1d
 )
+
+class MultiheadAttentionBlock(nn.Module):
+    def __init__(self, d_model: int, h: int, dropout: float):
+        super().__init__()
+        self.d_model = d_model
+        self.h = h
+        self.dropout = dropout
+
+        assert d_model % h == 0, "d_model is not divisible by h"
+
+        self.d_k = d_model // h
+        self.w_q = nn.Linear(d_model,d_model,bias=False)
+        self.w_k = nn.Linear(d_model,d_model)
+        self.w_v = nn.Linear(d_model,d_model)
+        self.w_o = nn.Linear(h*self.d_k, d_model)
+
+        self.dropout = nn.Dropout(p=dropout)
+
+    @staticmethod
+    def attention(query, key, value, dropout: nn.Dropout):
+        d_k = query.shape[-1]
+
+        attentionscore = (query @ key.transpose(-1,-2))/math.sqrt(d_k)
+        attentionscore = attentionscore.softmax(dim = -1)
+
+        if dropout is not None: 
+            attentionscore = dropout(attentionscore)
+        return (attentionscore @ value), attentionscore
+
+    def forward(self,q,k,v): 
+        q_ = self.w_q(q)
+        k_ = self.w_k(k)
+        v_ = self.w_v(v)
+        # the shape of q_, k_ and v_ are the same, namely: (Batch, Seq_len, d_model) 
+        B,S,_ = q_.shape
+        # now we want to have the shape of transformation: 
+        # (Batch, Seq_len, d_model) --> (Batch, Seq_len, h, d_k) --> (Batch, h, Seq_len, d_k)
+        q_chunk = q_.view(B, S, self.h, self.d_k).transpose(1, 2)
+        k_chunk = k_.view(B, S, self.h, self.d_k).transpose(1, 2)
+        v_chunk = v_.view(B, S, self.h, self.d_k).transpose(1, 2)
+
+        x, self.attention_score = MultiheadAttentionBlock.attention(q_chunk, k_chunk, v_chunk, self.dropout)
+
+        # (Batch, h, Seq_len, d_k)--> (Batch, Seq_len, h, d_k) --> (Batch, Seq_len, d_model) 
+        x = x.transpose(1,2).contiguous().view(B, -1, self.h * self.d_k)
+
+        return self.w_o(x)
+    
+class PoseAttentionDecoder(nn.Module):
+    ''' Decoder class.
+
+    It does not perform any form of normalization.
+
+    Args:
+        dim (int): input dimension
+        z_dim (int): dimension of latent code z
+        c_dim (int): dimension of latent conditioned code c
+        hidden_size (int): hidden size of Decoder network
+        leaky (bool): whether to use leaky ReLUs
+    '''
+
+    def __init__(self, dim=3, pose_dim = 6, z_dim=128, c_dim=128,
+                 hidden_size=128, leaky=False):
+        super().__init__()
+        self.z_dim = z_dim
+        self.c_dim = c_dim
+
+        #Attention
+        self.crossattention = MultiheadAttentionBlock(d_model=128, h=16, dropout=0.8)
+
+        # Submodules
+        self.fc_p = nn.Linear(dim, hidden_size)
+        self.fc_pd = nn.Linear(pose_dim, hidden_size)
+
+        if not z_dim == 0:
+            self.fc_z = nn.Linear(z_dim, hidden_size)
+
+        if not c_dim == 0:
+            self.fc_c = nn.Linear(c_dim, hidden_size)
+
+        self.block0 = ResnetBlockFC(hidden_size)
+        self.block1 = ResnetBlockFC(hidden_size)
+        self.block2 = ResnetBlockFC(hidden_size)
+        self.block3 = ResnetBlockFC(hidden_size)
+        self.block4 = ResnetBlockFC(hidden_size)
+
+        self.fc_out = nn.Linear(hidden_size, 1)
+
+        if not leaky:
+            self.actvn = F.relu
+        else:
+            self.actvn = lambda x: F.leaky_relu(x, 0.2)
+
+    def forward(self, p, z, pose, c=None, **kwargs):
+        batch_size, T, D = p.size()
+
+        net = self.fc_p(p)
+
+        if self.z_dim != 0:
+            net_z = self.fc_z(z).unsqueeze(1)
+            net = net + net_z
+
+        if self.c_dim != 0:
+            net_c = self.fc_c(c).unsqueeze(1)
+            net = net + net_c
+        
+        pose = self.fc_pd(pose)
+        #apply crossattention 
+        net = self.block0(net)
+        net = self.block1(net)
+        net = self.block2(net)
+        net = self.block3(net)
+        net = self.block4(net)
+
+        pose_net = self.crossattention(pose,pose,net)
+
+        out = self.fc_out(self.actvn(pose_net))
+        out = out.squeeze(-1)
+
+        return out
 
 
 class Decoder(nn.Module):
