@@ -7,6 +7,55 @@ from im2mesh.onet import models, training, generation
 from im2mesh import data
 from im2mesh import config
 
+def get_model_with_pose(cfg, device=None, dataset=None, **kwargs):
+    ''' Return the Occupancy Network model.
+
+    Args:
+        cfg (dict): imported yaml config 
+        device (device): pytorch device
+        dataset (dataset): dataset
+    '''
+    decoder = cfg['model']['decoder']
+    encoder = cfg['model']['encoder']
+    encoder_latent = cfg['model']['encoder_latent']
+    dim = cfg['data']['dim']
+    pose_dim = cfg['data']['pose_dim']
+    z_dim = cfg['model']['z_dim']
+    c_dim = cfg['model']['c_dim']
+    decoder_kwargs = cfg['model']['decoder_kwargs']
+    encoder_kwargs = cfg['model']['encoder_kwargs']
+    encoder_latent_kwargs = cfg['model']['encoder_latent_kwargs']
+
+    decoder = models.decoder_dict[decoder](
+        dim=dim, pose_dim = pose_dim, z_dim=z_dim, c_dim=c_dim, 
+        **decoder_kwargs
+    )
+
+    if z_dim != 0:
+        encoder_latent = models.encoder_latent_dict[encoder_latent](
+            dim=dim, z_dim=z_dim, c_dim=c_dim,
+            **encoder_latent_kwargs
+        )
+    else:
+        encoder_latent = None
+
+    if encoder == 'idx':
+        encoder = nn.Embedding(len(dataset), c_dim)
+    elif encoder is not None:
+        encoder = encoder_dict[encoder](
+            c_dim=c_dim,
+            **encoder_kwargs
+        )
+    else:
+        encoder = None
+
+    p0_z = get_prior_z(cfg, device)
+    model = models.OccupancyNetwork(
+        decoder, encoder, encoder_latent, p0_z, device=device
+    )
+
+    return model
+
 
 def get_model(cfg, device=None, dataset=None, **kwargs):
     ''' Return the Occupancy Network model.

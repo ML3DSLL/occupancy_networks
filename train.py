@@ -70,7 +70,22 @@ vis_loader = torch.utils.data.DataLoader(
 data_vis = next(iter(vis_loader))
 
 # Model
-model = config.get_model(cfg, device=device, dataset=train_dataset)
+if cfg['data'].get('pose_dim', 0) > 0:
+    model = config.get_model_with_pose(cfg, device=device, dataset=train_dataset)
+else:
+    model = config.get_model(cfg, device=device, dataset=train_dataset)
+# model in the config file:
+#   decoder: simple
+#   encoder: resnet18
+#   encoder_latent: null
+#   decoder_kwargs: {}
+#   encoder_kwargs: {}
+#   encoder_latent_kwargs: {}
+#   multi_gpu: false
+#   c_dim: 512
+#   z_dim: 64
+#   use_camera: false
+#   dmc_weight_prior: 10.
 
 # Intialize training
 npoints = 1000

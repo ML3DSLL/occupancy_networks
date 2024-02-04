@@ -1,11 +1,13 @@
 import torch
 import torch.nn as nn
 from torch import distributions as dist
+from im2mesh.onet.models import encoder_convnext
 from im2mesh.onet.models import encoder_latent, decoder
 
 # Encoder latent dictionary
 encoder_latent_dict = {
     'simple': encoder_latent.Encoder,
+    'encoder_convnext': encoder_convnext.encoder
 }
 
 # Decoder dictionary
@@ -15,6 +17,7 @@ decoder_dict = {
     'cbatchnorm2': decoder.DecoderCBatchNorm2,
     'batchnorm': decoder.DecoderBatchNorm,
     'cbatchnorm_noresnet': decoder.DecoderCBatchNormNoResnet,
+    'poseattentiondecoder': decoder.PoseAttentionDecoder
 }
 
 
@@ -50,7 +53,7 @@ class OccupancyNetwork(nn.Module):
         self._device = device
         self.p0_z = p0_z
 
-    def forward(self, p, inputs, sample=True, **kwargs):
+    def forward(self, p, inputs, pose, sample=True, **kwargs):
         ''' Performs a forward pass through the network.
 
         Args:
@@ -61,7 +64,7 @@ class OccupancyNetwork(nn.Module):
         batch_size = p.size(0)
         c = self.encode_inputs(inputs)
         z = self.get_z_from_prior((batch_size,), sample=sample)
-        p_r = self.decode(p, z, c, **kwargs)
+        p_r = self.decode(p, z, pose, c, **kwargs)
         return p_r
 
     def compute_elbo(self, p, occ, inputs, **kwargs):
@@ -98,7 +101,7 @@ class OccupancyNetwork(nn.Module):
 
         return c
 
-    def decode(self, p, z, c, **kwargs):
+    def decode(self, p, z, pose, c,  **kwargs):
         ''' Returns occupancy probabilities for the sampled points.
 
         Args:
@@ -107,7 +110,7 @@ class OccupancyNetwork(nn.Module):
             c (tensor): latent conditioned code c
         '''
 
-        logits = self.decoder(p, z, c, **kwargs)
+        logits = self.decoder(p, z, pose, c, **kwargs)
         p_r = dist.Bernoulli(logits=logits)
         return p_r
 
