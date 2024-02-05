@@ -7,7 +7,7 @@ from im2mesh.onet.models import encoder_latent, decoder
 # Encoder latent dictionary
 encoder_latent_dict = {
     'simple': encoder_latent.Encoder,
-    'encoder_convnext': encoder_convnext.encoder
+    'convnext': encoder_convnext.Encoder
 }
 
 # Decoder dictionary
@@ -53,7 +53,7 @@ class OccupancyNetwork(nn.Module):
         self._device = device
         self.p0_z = p0_z
 
-    def forward(self, p, inputs, pose, sample=True, **kwargs):
+    def forward(self, p, inputs, pose=None, sample=True, **kwargs):
         ''' Performs a forward pass through the network.
 
         Args:
@@ -62,12 +62,15 @@ class OccupancyNetwork(nn.Module):
             sample (bool): whether to sample for z
         '''
         batch_size = p.size(0)
-        c = self.encode_inputs(inputs)
+        if pose is not None:
+            c = self.encode_inputs(inputs, pose)
+        else:
+            c = self.encode_inputs(inputs)
         z = self.get_z_from_prior((batch_size,), sample=sample)
-        p_r = self.decode(p, z, pose, c, **kwargs)
+        p_r = self.decode(p, z, c, **kwargs)
         return p_r
 
-    def compute_elbo(self, p, occ, inputs, **kwargs):
+    def compute_elbo(self, p, occ, inputs, pose=None, **kwargs):
         ''' Computes the expectation lower bound.
 
         Args:
@@ -75,7 +78,10 @@ class OccupancyNetwork(nn.Module):
             occ (tensor): occupancy values for p
             inputs (tensor): conditioning input
         '''
-        c = self.encode_inputs(inputs)
+        if pose is not None:
+            c = self.encode_inputs(inputs, pose)
+        else:
+            c = self.encode_inputs(inputs)
         q_z = self.infer_z(p, occ, c, **kwargs)
         z = q_z.rsample()
         p_r = self.decode(p, z, c, **kwargs)
@@ -86,22 +92,25 @@ class OccupancyNetwork(nn.Module):
 
         return elbo, rec_error, kl
 
-    def encode_inputs(self, inputs):
+    def encode_inputs(self, inputs, pose=None):
         ''' Encodes the input.
 
         Args:
             input (tensor): the input
+            pose (tensor): pose tensor
         '''
 
         if self.encoder is not None:
             c = self.encoder(inputs)
+            if pose is not None:
+                c = torch.concat((c, pose), 1)
         else:
             # Return inputs?
             c = torch.empty(inputs.size(0), 0)
 
         return c
 
-    def decode(self, p, z, pose, c,  **kwargs):
+    def decode(self, p, z, c, **kwargs):
         ''' Returns occupancy probabilities for the sampled points.
 
         Args:
@@ -110,7 +119,7 @@ class OccupancyNetwork(nn.Module):
             c (tensor): latent conditioned code c
         '''
 
-        logits = self.decoder(p, z, pose, c, **kwargs)
+        logits = self.decoder(p, z, c, **kwargs)
         p_r = dist.Bernoulli(logits=logits)
         return p_r
 

@@ -19,15 +19,15 @@ def get_model_with_pose(cfg, device=None, dataset=None, **kwargs):
     encoder = cfg['model']['encoder']
     encoder_latent = cfg['model']['encoder_latent']
     dim = cfg['data']['dim']
-    pose_dim = cfg['data']['pose_dim']
     z_dim = cfg['model']['z_dim']
     c_dim = cfg['model']['c_dim']
+    pose_dim = cfg['model']['pose_embedding_dim']
     decoder_kwargs = cfg['model']['decoder_kwargs']
     encoder_kwargs = cfg['model']['encoder_kwargs']
     encoder_latent_kwargs = cfg['model']['encoder_latent_kwargs']
 
     decoder = models.decoder_dict[decoder](
-        dim=dim, pose_dim = pose_dim, z_dim=z_dim, c_dim=c_dim, 
+        dim=dim, z_dim=z_dim, c_dim=c_dim+pose_dim, 
         **decoder_kwargs
     )
 

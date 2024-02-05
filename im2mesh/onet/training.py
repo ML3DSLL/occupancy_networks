@@ -37,7 +37,7 @@ class Trainer(BaseTrainer):
         if vis_dir is not None and not os.path.exists(vis_dir):
             os.makedirs(vis_dir)
 
-    def train_step(self, data):
+    def train_step(self, data, with_pose=False):
         ''' Performs a training step.
 
         Args:
@@ -45,12 +45,12 @@ class Trainer(BaseTrainer):
         '''
         self.model.train()
         self.optimizer.zero_grad()
-        loss = self.compute_loss(data)
+        loss = self.compute_loss(data, with_pose=with_pose)
         loss.backward()
         self.optimizer.step()
         return loss.item()
 
-    def eval_step(self, data):
+    def eval_step(self, data, with_pose=False):
         ''' Performs an evaluation step.
 
         Args:
@@ -69,13 +69,22 @@ class Trainer(BaseTrainer):
         inputs = data.get('inputs', torch.empty(points.size(0), 0)).to(device)
         voxels_occ = data.get('voxels')
 
+        # data for pix3d
+        if with_pose:
+            pose = data['inputs.world_mat'].reshape(-1, 16).to(dtype=torch.float32, device=device)
+            mask = data['inputs.mask'].to(device)
+
         points_iou = data.get('points_iou').to(device)
         occ_iou = data.get('points_iou.occ').to(device)
 
         kwargs = {}
 
         with torch.no_grad():
-            elbo, rec_error, kl = self.model.compute_elbo(
+            if with_pose:
+                elbo, rec_error, kl = self.model.compute_elbo(
+                    points, occ, inputs, pose, **kwargs)
+            else:
+                elbo, rec_error, kl = self.model.compute_elbo(
                 points, occ, inputs, **kwargs)
 
         eval_dict['loss'] = -elbo.mean().item()
@@ -114,7 +123,7 @@ class Trainer(BaseTrainer):
 
         return eval_dict
 
-    def visualize(self, data):
+    def visualize(self, data, with_pose=False):
         ''' Performs a visualization step for the data.
 
         Args:
@@ -125,13 +134,21 @@ class Trainer(BaseTrainer):
         batch_size = data['points'].size(0)
         inputs = data.get('inputs', torch.empty(batch_size, 0)).to(device)
 
+        # data for pix3d
+        if with_pose:
+            pose = data['inputs.world_mat'].reshape(-1, 16).to(dtype=torch.float32, device=device)
+            mask = data['inputs.mask'].to(device)
+
         shape = (32, 32, 32)
         p = make_3d_grid([-0.5] * 3, [0.5] * 3, shape).to(device)
         p = p.expand(batch_size, *p.size())
 
         kwargs = {}
         with torch.no_grad():
-            p_r = self.model(p, inputs, sample=self.eval_sample, **kwargs)
+            if with_pose:
+                p_r = self.model(p, inputs, pose, sample=self.eval_sample, **kwargs)
+            else:
+                p_r = self.model(p, inputs, sample=self.eval_sample, **kwargs)
 
         occ_hat = p_r.probs.view(batch_size, *shape)
         voxels_out = (occ_hat >= self.threshold).cpu().numpy()
@@ -143,7 +160,7 @@ class Trainer(BaseTrainer):
             vis.visualize_voxels(
                 voxels_out[i], os.path.join(self.vis_dir, '%03d.png' % i))
 
-    def compute_loss(self, data):
+    def compute_loss(self, data, with_pose=False):
         ''' Computes the loss.
 
         Args:
@@ -154,9 +171,17 @@ class Trainer(BaseTrainer):
         occ = data.get('points.occ').to(device)
         inputs = data.get('inputs', torch.empty(p.size(0), 0)).to(device)
 
+        # data for pix3d
+        if with_pose:
+            pose = data['inputs.world_mat'].reshape(-1, 16).to(dtype=torch.float32, device=device)
+            mask = data['inputs.mask'].to(device)
+
         kwargs = {}
 
-        c = self.model.encode_inputs(inputs)
+        if with_pose:
+            c = self.model.encode_inputs(inputs, pose)
+        else:
+            c = self.model.encode_inputs(inputs)
         q_z = self.model.infer_z(p, occ, c, **kwargs)
         z = q_z.rsample()
 

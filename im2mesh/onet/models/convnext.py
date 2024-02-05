@@ -63,7 +63,7 @@ class ConvNeXt(nn.Module):
         layer_scale_init_value (float): Init value for Layer Scale. Default: 1e-6.
         head_init_scale (float): Init scaling value for classifier weights and biases. Default: 1.
     """
-    def __init__(self, in_chans=3, out_chans=128, 
+    def __init__(self, in_chans=3, c_dim=128, 
                  depths=[3, 3, 9, 3], dims=[96, 192, 384, 768], drop_path_rate=0., 
                  layer_scale_init_value=1e-6, head_init_scale=1.,
                  ):
@@ -94,7 +94,7 @@ class ConvNeXt(nn.Module):
             cur += depths[i]
 
         self.norm = nn.LayerNorm(dims[-1], eps=1e-6) # final norm layer
-        self.head = nn.Linear(dims[-1], out_chans)
+        self.head = nn.Linear(dims[-1], c_dim)
 
         self.apply(self._init_weights)
         self.head.weight.data.mul_(head_init_scale)
@@ -105,8 +105,7 @@ class ConvNeXt(nn.Module):
             trunc_normal_(m.weight, std=.02)
             nn.init.constant_(m.bias, 0)
 
-    def forward_features(self, x, poseinfo):
-        x = torch.concat(x, poseinfo, dim = 1) # add pose information to the channels on each batch.
+    def forward_features(self, x):
         for i in range(4):
             x = self.downsample_layers[i](x)
             x = self.stages[i](x)

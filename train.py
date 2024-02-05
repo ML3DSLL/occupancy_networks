@@ -70,9 +70,12 @@ vis_loader = torch.utils.data.DataLoader(
 data_vis = next(iter(vis_loader))
 
 # Model
-if cfg['data'].get('pose_dim', 0) > 0:
+with_pose = 'pose_dim' in cfg['data']
+if with_pose:
+    print('Using pose in the model')
     model = config.get_model_with_pose(cfg, device=device, dataset=train_dataset)
 else:
+    print('Not using pose in the model')
     model = config.get_model(cfg, device=device, dataset=train_dataset)
 # model in the config file:
 #   decoder: simple
@@ -129,6 +132,7 @@ visualize_every = cfg['training']['visualize_every']
 nparameters = sum(p.numel() for p in model.parameters())
 print(model)
 print('Total number of parameters: %d' % nparameters)
+# logger.add_graph(model, data_vis)
 
 while True:
     epoch_it += 1
@@ -136,7 +140,7 @@ while True:
 
     for batch in train_loader:
         it += 1
-        loss = trainer.train_step(batch)
+        loss = trainer.train_step(batch, with_pose)
         logger.add_scalar('train/loss', loss, it)
 
         # Print output
@@ -147,7 +151,7 @@ while True:
         # Visualize output
         if visualize_every > 0 and (it % visualize_every) == 0:
             print('Visualizing')
-            trainer.visualize(data_vis)
+            trainer.visualize(data_vis, with_pose)
 
         # Save checkpoint
         if (checkpoint_every > 0 and (it % checkpoint_every) == 0):

@@ -16,7 +16,7 @@ class Encoder(nn.Module):
     posterior Gaussian distribution.
 
     Args:
-        z_dim (int): dimension if output code z
+        z_dim (int): dimension of output code z
         c_dim (int): dimension of latent conditioned code c
         dim (int): input dimension
         leaky (bool): whether to use leaky ReLUs
