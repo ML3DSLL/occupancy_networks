@@ -73,6 +73,9 @@ class Trainer(BaseTrainer):
         if with_pose:
             pose = data['inputs.world_mat'].reshape(-1, 16).to(dtype=torch.float32, device=device)
             mask = data['inputs.mask'].to(device)
+        else:
+            pose = None
+            mask = None
 
         points_iou = data.get('points_iou').to(device)
         occ_iou = data.get('points_iou.occ').to(device)
@@ -80,12 +83,8 @@ class Trainer(BaseTrainer):
         kwargs = {}
 
         with torch.no_grad():
-            if with_pose:
-                elbo, rec_error, kl = self.model.compute_elbo(
+            elbo, rec_error, kl = self.model.compute_elbo(
                     points, occ, inputs, pose, **kwargs)
-            else:
-                elbo, rec_error, kl = self.model.compute_elbo(
-                points, occ, inputs, **kwargs)
 
         eval_dict['loss'] = -elbo.mean().item()
         eval_dict['rec_error'] = rec_error.mean().item()
@@ -95,7 +94,7 @@ class Trainer(BaseTrainer):
         batch_size = points.size(0)
 
         with torch.no_grad():
-            p_out = self.model(points_iou, inputs,
+            p_out = self.model(points_iou, inputs, pose,
                                sample=self.eval_sample, **kwargs)
 
         occ_iou_np = (occ_iou >= 0.5).cpu().numpy()
@@ -112,7 +111,7 @@ class Trainer(BaseTrainer):
                 batch_size, *points_voxels.size())
             points_voxels = points_voxels.to(device)
             with torch.no_grad():
-                p_out = self.model(points_voxels, inputs,
+                p_out = self.model(points_voxels, inputs, pose,
                                    sample=self.eval_sample, **kwargs)
 
             voxels_occ_np = (voxels_occ >= 0.5).cpu().numpy()
@@ -138,6 +137,9 @@ class Trainer(BaseTrainer):
         if with_pose:
             pose = data['inputs.world_mat'].reshape(-1, 16).to(dtype=torch.float32, device=device)
             mask = data['inputs.mask'].to(device)
+        else:
+            pose = None
+            mask = None
 
         shape = (32, 32, 32)
         p = make_3d_grid([-0.5] * 3, [0.5] * 3, shape).to(device)
@@ -145,10 +147,7 @@ class Trainer(BaseTrainer):
 
         kwargs = {}
         with torch.no_grad():
-            if with_pose:
-                p_r = self.model(p, inputs, pose, sample=self.eval_sample, **kwargs)
-            else:
-                p_r = self.model(p, inputs, sample=self.eval_sample, **kwargs)
+            p_r = self.model(p, inputs, pose, sample=self.eval_sample, **kwargs)
 
         occ_hat = p_r.probs.view(batch_size, *shape)
         voxels_out = (occ_hat >= self.threshold).cpu().numpy()
@@ -175,13 +174,13 @@ class Trainer(BaseTrainer):
         if with_pose:
             pose = data['inputs.world_mat'].reshape(-1, 16).to(dtype=torch.float32, device=device)
             mask = data['inputs.mask'].to(device)
+        else:
+            pose = None
+            mask = None
 
         kwargs = {}
 
-        if with_pose:
-            c = self.model.encode_inputs(inputs, pose)
-        else:
-            c = self.model.encode_inputs(inputs)
+        c = self.model.encode_inputs(inputs, pose)
         q_z = self.model.infer_z(p, occ, c, **kwargs)
         z = q_z.rsample()
 

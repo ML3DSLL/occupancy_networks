@@ -166,7 +166,7 @@ while True:
                                loss_val_best=metric_val_best)
         # Run validation
         if validate_every > 0 and (it % validate_every) == 0:
-            eval_dict = trainer.evaluate(val_loader)
+            eval_dict = trainer.evaluate(val_loader, with_pose)
             metric_val = eval_dict[model_selection_metric]
             print('Validation metric (%s): %.4f'
                   % (model_selection_metric, metric_val))

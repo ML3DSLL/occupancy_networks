@@ -8,7 +8,7 @@ class BaseTrainer(object):
     ''' Base trainer class.
     '''
 
-    def evaluate(self, val_loader):
+    def evaluate(self, val_loader, with_pose=False):
         ''' Performs an evaluation.
         Args:
             val_loader (dataloader): pytorch dataloader
@@ -16,7 +16,7 @@ class BaseTrainer(object):
         eval_list = defaultdict(list)
 
         for data in tqdm(val_loader):
-            eval_step_dict = self.eval_step(data)
+            eval_step_dict = self.eval_step(data, with_pose)
 
             for k, v in eval_step_dict.items():
                 eval_list[k].append(v)
