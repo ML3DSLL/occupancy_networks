@@ -8,6 +8,7 @@ import time
 import matplotlib; matplotlib.use('Agg')
 from im2mesh import config, data
 from im2mesh.checkpoints import CheckpointIO
+from im2mesh.common import make_3d_grid
 
 
 # Arguments
@@ -132,7 +133,17 @@ visualize_every = cfg['training']['visualize_every']
 nparameters = sum(p.numel() for p in model.parameters())
 print(model)
 print('Total number of parameters: %d' % nparameters)
-# logger.add_graph(model, data_vis)
+
+# visualize graph
+# points = data_vis.get('points').to(device)
+# inputs = data_vis.get('inputs', torch.empty(points.size(0), 0)).to(device)
+# p = make_3d_grid([-0.5] * 3, [0.5] * 3, (32, 32, 32)).to(device)
+# p = p.expand(batch_size, *p.size())
+# if with_pose:
+#     pose = data_vis['inputs.world_mat'].reshape(-1, 16).to(dtype=torch.float32, device=device)
+#     logger.add_graph(model, (p, inputs, pose))
+# else:
+#     logger.add_graph(model, (p, inputs))
 
 while True:
     epoch_it += 1

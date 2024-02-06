@@ -67,6 +67,9 @@ class Trainer(BaseTrainer):
         occ = data.get('points.occ').to(device)
 
         inputs = data.get('inputs', torch.empty(points.size(0), 0)).to(device)
+        if 'inputs.mask' in data:
+            masks = data['inputs.mask'].expand_as(inputs).to(device)
+            inputs[masks == 0] = 1
         voxels_occ = data.get('voxels')
 
         # data for pix3d
@@ -132,6 +135,9 @@ class Trainer(BaseTrainer):
 
         batch_size = data['points'].size(0)
         inputs = data.get('inputs', torch.empty(batch_size, 0)).to(device)
+        if 'inputs.mask' in data:
+            masks = data['inputs.mask'].expand_as(inputs).to(device)
+            inputs[masks == 0] = 1
 
         # data for pix3d
         if with_pose:
@@ -169,6 +175,9 @@ class Trainer(BaseTrainer):
         p = data.get('points').to(device)
         occ = data.get('points.occ').to(device)
         inputs = data.get('inputs', torch.empty(p.size(0), 0)).to(device)
+        if 'inputs.mask' in data:
+            masks = data['inputs.mask'].expand_as(inputs).to(device)
+            inputs[masks == 0] = 1
 
         # data for pix3d
         if with_pose:

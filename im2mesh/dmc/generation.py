@@ -18,6 +18,9 @@ class Generator3D(object):
         device = self.device
 
         inputs = data.get('inputs', torch.empty(1, 0)).to(device)
+        if 'inputs.mask' in data:
+            masks = data['inputs.mask'].expand_as(inputs).to(device)
+            inputs[masks == 0] = 1
 
         inputs = self.num_voxels * (inputs / 1.2 + 0.5)
 

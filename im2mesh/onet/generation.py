@@ -62,6 +62,9 @@ class Generator3D(object):
         stats_dict = {}
 
         inputs = data.get('inputs', torch.empty(1, 0)).to(device)
+        if 'inputs.mask' in data:
+            masks = data['inputs.mask'].expand_as(inputs).to(device)
+            inputs[masks == 0] = 1
         kwargs = {}
 
         # Preprocess if requires
