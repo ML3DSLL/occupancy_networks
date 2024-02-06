@@ -1,13 +1,11 @@
 import torch
 import torch.nn as nn
 from torch import distributions as dist
-from im2mesh.onet.models import encoder_convnext
 from im2mesh.onet.models import encoder_latent, decoder
 
 # Encoder latent dictionary
 encoder_latent_dict = {
     'simple': encoder_latent.Encoder,
-    'convnext': encoder_convnext.Encoder
 }
 
 # Decoder dictionary

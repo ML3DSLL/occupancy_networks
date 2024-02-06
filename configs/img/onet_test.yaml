@@ -10,7 +10,7 @@ data:
   dim: 3
   points_file: points.npz
   points_iou_file: points.npz
-  points_subsample: 1024
+  points_subsample: 2048
   points_unpackbits: true
   model_file: model.off
   watertight_file: model_watertight.off
@@ -24,7 +24,7 @@ data:
   pointcloud_file: pointcloud.npz
   pointcloud_chamfer_file: pointcloud.npz
   pointcloud_n: 256
-  pointcloud_target_n: 1024
+  pointcloud_target_n: 100000
   pointcloud_noise: 0.05
   voxels_file: 'model.binvox'
   with_transforms: false

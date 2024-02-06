@@ -155,3 +155,31 @@ class Resnet101(nn.Module):
         net = self.features(x)
         out = self.fc(net)
         return out
+
+class ConvNeXtTiny(nn.Module):
+    r''' ConvNeXtTiny encoder network for image input.
+    Args:
+        c_dim (int): output dimension of the latent embedding
+        normalize (bool): whether the input images should be normalized
+        use_linear (bool): whether a final linear layer should be used
+    '''
+
+    def __init__(self, c_dim, normalize=True, use_linear=True):
+        super().__init__()
+        self.normalize = normalize
+        self.use_linear = use_linear
+        self.features = models.convnext_tiny(pretrained=True)
+        self.features.classifier = nn.Sequential()
+        if use_linear:
+            self.fc = nn.Linear(768, c_dim)
+        elif c_dim == 768:
+            self.fc = nn.Sequential()
+        else:
+            raise ValueError('c_dim must be 512 if use_linear is False')
+
+    def forward(self, x):
+        if self.normalize:
+            x = normalize_imagenet(x)
+        net = self.features(x)
+        out = self.fc(net.reshape(-1, 768))
+        return out
