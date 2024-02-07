@@ -39,13 +39,13 @@ model:
   encoder_latent_kwargs: {}
   multi_gpu: false
   c_dim: 256
-  pose_embedding_dim: 16
   z_dim: 0
+  pose_embedding_dim: 16
   use_camera: false
   dmc_weight_prior: 10.
 training:
-  out_dir:  out/img/onet_pose
-  batch_size: 32
+  out_dir:  out/img/onet_convnext_chairs_pose
+  batch_size: 8 #64
   print_every: 10
   visualize_every: 2000
   checkpoint_every: 1000

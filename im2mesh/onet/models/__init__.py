@@ -101,6 +101,7 @@ class OccupancyNetwork(nn.Module):
         if self.encoder is not None:
             c = self.encoder(inputs)
             if pose is not None:
+                # TODO: encode the pose
                 c = torch.concat((c, pose), 1)
         else:
             # Return inputs?
