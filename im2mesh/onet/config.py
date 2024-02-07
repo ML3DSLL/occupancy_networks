@@ -21,19 +21,20 @@ def get_model_with_pose(cfg, device=None, dataset=None, **kwargs):
     dim = cfg['data']['dim']
     z_dim = cfg['model']['z_dim']
     c_dim = cfg['model']['c_dim']
-    pose_dim = cfg['model']['pose_embedding_dim']
+    pose_dim = cfg['data']['pose_dim']
+    pose_embedding_dim = cfg['model']['pose_embedding_dim']
     decoder_kwargs = cfg['model']['decoder_kwargs']
     encoder_kwargs = cfg['model']['encoder_kwargs']
     encoder_latent_kwargs = cfg['model']['encoder_latent_kwargs']
 
     decoder = models.decoder_dict[decoder](
-        dim=dim, z_dim=z_dim, c_dim=c_dim+pose_dim, 
+        dim=dim, z_dim=z_dim, c_dim=c_dim+pose_embedding_dim, 
         **decoder_kwargs
     )
 
     if z_dim != 0:
         encoder_latent = models.encoder_latent_dict[encoder_latent](
-            dim=dim, z_dim=z_dim, c_dim=c_dim,
+            dim=dim, z_dim=z_dim, c_dim=c_dim
             **encoder_latent_kwargs
         )
     else:
@@ -51,7 +52,7 @@ def get_model_with_pose(cfg, device=None, dataset=None, **kwargs):
 
     p0_z = get_prior_z(cfg, device)
     model = models.OccupancyNetwork(
-        decoder, encoder, encoder_latent, p0_z, device=device
+        decoder, encoder, encoder_latent, p0_z, device=device, pose_dim=pose_dim, pose_embedding_dim=pose_embedding_dim
     )
 
     return model

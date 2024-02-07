@@ -92,7 +92,6 @@ else:
 #   dmc_weight_prior: 10.
 
 # Intialize training
-npoints = 1000
 optimizer = optim.Adam(model.parameters(), lr=1e-4)
 # optimizer = optim.SGD(model.parameters(), lr=1e-4, momentum=0.9)
 trainer = config.get_trainer(model, optimizer, cfg, device=device)

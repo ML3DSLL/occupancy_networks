@@ -31,7 +31,7 @@ class OccupancyNetwork(nn.Module):
     '''
 
     def __init__(self, decoder, encoder=None, encoder_latent=None, p0_z=None,
-                 device=None):
+                 device=None, pose_dim=None, pose_embedding_dim=None):
         super().__init__()
         if p0_z is None:
             p0_z = dist.Normal(torch.tensor([], device=device), torch.tensor([], device=device))
@@ -47,6 +47,9 @@ class OccupancyNetwork(nn.Module):
             self.encoder = encoder.to(device)
         else:
             self.encoder = None
+        
+        if pose_dim is not None and pose_embedding_dim is not None:
+            self.pose_encoder = nn.Linear(pose_dim, pose_embedding_dim).to(device)
 
         self._device = device
         self.p0_z = p0_z
@@ -101,7 +104,8 @@ class OccupancyNetwork(nn.Module):
         if self.encoder is not None:
             c = self.encoder(inputs)
             if pose is not None:
-                # TODO: encode the pose
+                # encode the pose
+                pose = self.pose_encoder(pose)
                 c = torch.concat((c, pose), 1)
         else:
             # Return inputs?

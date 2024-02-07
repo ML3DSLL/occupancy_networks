@@ -76,7 +76,7 @@ def get_model(cfg, device=None, dataset=None):
         cfg, device=device, dataset=dataset)
     return model
 
-def get_model_with_pose(cfg, device=None, dataset=None, pose = None):
+def get_model_with_pose(cfg, device, dataset):
     ''' Returns the model instance.
 
     Args:
@@ -86,7 +86,7 @@ def get_model_with_pose(cfg, device=None, dataset=None, pose = None):
     '''
     method = cfg['method']
     model = method_dict[method].config.get_model_with_pose(
-        cfg, device=device, dataset=dataset, pose = pose)
+        cfg, device=device, dataset=dataset)
     return model
 
 # Trainer
