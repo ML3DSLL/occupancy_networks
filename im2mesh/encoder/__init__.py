@@ -18,5 +18,6 @@ encoder_dict = {
     'voxel_simple': voxels.VoxelEncoder,
     'pixel2mesh_cond': pix2mesh_cond.Pix2mesh_Cond,
     'convnext': conv.ConvNeXtTiny,
+    'convnext2': conv.ConvNeXt2Tiny,
     'convnext_fp': conv.ConvNeXtTinyFP,
 }

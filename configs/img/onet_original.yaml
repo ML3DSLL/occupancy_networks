@@ -2,7 +2,7 @@ method: onet
 data:
   dataset: pix3d
   path: data/pix3d
-  classes: null
+  classes: ['chair']
   input_type: img
   train_split: train
   val_split: val

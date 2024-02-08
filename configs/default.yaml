@@ -2,7 +2,7 @@ method: onet
 data:
   dataset: Shapes3D
   path: data/ShapeNet
-  classes: null
+  classes: ['chair']
   input_type: img
   train_split: train
   val_split: val

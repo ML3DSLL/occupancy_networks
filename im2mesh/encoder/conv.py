@@ -3,6 +3,7 @@ import torch.nn as nn
 # import torch.nn.functional as F
 from torchvision import models
 from im2mesh.common import normalize_imagenet
+from .convnext.convnextv2 import convnextv2_atto, convnextv2_tiny
 
 
 class ConvEncoder(nn.Module):
@@ -157,6 +158,7 @@ class Resnet101(nn.Module):
         out = self.fc(net)
         return out
 
+
 class ConvNeXtTiny(nn.Module):
     r''' ConvNeXtTiny encoder network for image input.
     Args:
@@ -173,12 +175,32 @@ class ConvNeXtTiny(nn.Module):
         self.features = models.convnext_tiny(pretrained=True)
         self.features.classifier = nn.Sequential()
     
-        if use_linear:
-            self.fc = nn.Linear(768, c_dim)
-        elif c_dim == 768:
-            self.fc = nn.Sequential()
-        else:
-            raise ValueError('c_dim must be 768 if use_linear is False')
+        self.fc = nn.Linear(768, c_dim)
+
+    def forward(self, x):
+        if self.normalize:
+            x = normalize_imagenet(x)
+        net = self.features(x)
+        out = self.fc(net.reshape(-1, 768))
+        return out
+    
+class ConvNeXt2Tiny(nn.Module):
+    r''' ConvNeXt2Tiny encoder network for image input.
+    Args:
+        c_dim (int): output dimension of the latent embedding
+        normalize (bool): whether the input images should be normalized
+        use_linear (bool): whether a final linear layer should be used
+    '''
+
+    def __init__(self, c_dim, normalize=True, use_linear=True):
+        super().__init__()
+        self.normalize = normalize
+        self.use_linear = use_linear
+
+        self.features = convnextv2_tiny()
+        self.features.load_state_dict(torch.load('convnextv2_tiny_1k_224_ema.pt'), strict=False)
+        self.features.head = nn.Sequential()
+        self.fc = nn.Linear(768, c_dim)
 
     def forward(self, x):
         if self.normalize:
