@@ -50,7 +50,7 @@ class Generator3D(object):
         self.simplify_nfaces = simplify_nfaces
         self.preprocessor = preprocessor
 
-    def generate_mesh(self, data, return_stats=True):
+    def generate_mesh(self, data, with_pose=False, return_stats=True):
         ''' Generates the output mesh.
 
         Args:
@@ -65,6 +65,16 @@ class Generator3D(object):
         if 'inputs.mask' in data:
             masks = data['inputs.mask'].expand_as(inputs).to(device)
             inputs[masks == 0] = 1
+
+
+        # data for pix3d
+        if with_pose:
+            pose = data['inputs.world_mat'].reshape(-1, 16).to(dtype=torch.float32, device=device)
+            mask = data['inputs.mask'].to(device)
+        else:
+            pose = None
+            mask = None
+
         kwargs = {}
 
         # Preprocess if requires
@@ -77,7 +87,7 @@ class Generator3D(object):
         # Encode inputs
         t0 = time.time()
         with torch.no_grad():
-            c = self.model.encode_inputs(inputs)
+            c = self.model.encode_inputs(inputs, pose)
         stats_dict['time (encode inputs)'] = time.time() - t0
 
         z = self.model.get_z_from_prior((1,), sample=self.sample).to(device)

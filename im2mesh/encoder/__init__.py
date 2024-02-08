@@ -20,4 +20,5 @@ encoder_dict = {
     'convnext': conv.ConvNeXtTiny,
     'convnext2': conv.ConvNeXt2Tiny,
     'convnext_fp': conv.ConvNeXtTinyFP,
+    'convnext_fp_max': conv.ConvNeXtTinyFPMax,
 }

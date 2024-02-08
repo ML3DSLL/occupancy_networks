@@ -248,3 +248,44 @@ class ConvNeXtTinyFP(nn.Module):
         x = self.pool(x).squeeze(2)
 
         return x
+
+
+class ConvNeXtTinyFPMax(nn.Module):
+    def __init__(self, c_dim, normalize=True):
+        super().__init__()
+        self.normalize = normalize
+
+        self.conv1 = nn.Conv2d(3, 3, kernel_size=4, stride=2, padding=1)
+        self.conv2 = nn.Conv2d(3, 3, kernel_size=4, stride=2, padding=1)
+
+        self.up1 = nn.ConvTranspose2d(3, 3, kernel_size=4, stride=2, padding=1)
+        self.up2 = nn.ConvTranspose2d(3, 3, kernel_size=4, stride=2, padding=1)
+
+        self.path0 = nn.Conv2d(3, 3, kernel_size=1)
+        self.path1 = nn.Conv2d(3, 3, kernel_size=1)
+
+        self.enc0 = ConvNeXtTiny(c_dim, normalize=False)
+        self.enc1 = ConvNeXtTiny(c_dim, normalize=False)
+        self.enc2 = ConvNeXtTiny(c_dim, normalize=False)
+
+        self.pool = nn.MaxPool1d(3)
+
+    def forward(self, x):
+        if self.normalize:
+            x = normalize_imagenet(x)
+
+        x0 = x
+        x1 = self.conv1(x0)
+        x2 = self.conv2(x1)
+
+        x1 = self.up2(x2) + self.path1(x1)
+        x0 = self.up1(x1) + self.path0(x0)
+
+        x2 = self.enc2(x2)
+        x1 = self.enc1(x1)
+        x0 = self.enc0(x0)
+
+        x = torch.concat([x0.unsqueeze(2), x1.unsqueeze(2), x2.unsqueeze(2)], dim=2)
+        x = self.pool(x).squeeze(2)
+
+        return x
