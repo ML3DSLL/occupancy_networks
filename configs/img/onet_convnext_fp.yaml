@@ -2,7 +2,7 @@ method: onet
 data:
   dataset: pix3d
   path: data/pix3d
-  classes: ['chair']
+  classes: null
   input_type: img
   train_split: train
   val_split: val
@@ -29,10 +29,9 @@ data:
   voxels_file: 'model.binvox'
   with_transforms: false
   metadata_file: matadata.yaml
-  pose_dim: 16
 model:
   decoder: cbatchnorm
-  encoder: convnext
+  encoder: convnext_fp
   encoder_latent: null
   decoder_kwargs: {}
   encoder_kwargs: {}
@@ -40,17 +39,16 @@ model:
   multi_gpu: false
   c_dim: 256
   z_dim: 0
-  pose_embedding_dim: 36
   use_camera: false
   dmc_weight_prior: 10.
 training:
-  out_dir:  out/img/onet_convnext_chairs_pose_linear
-  batch_size: 8 #64
+  out_dir:  out/img/onet_convnext_fp
+  batch_size: 16 #64
   print_every: 10
-  visualize_every: 2000
-  checkpoint_every: 1000
-  validate_every: 2000
-  backup_every: 100000
+  visualize_every: 1000
+  checkpoint_every: 500
+  validate_every: 100
+  backup_every: 1000
   eval_sample: false
   model_selection_metric: iou
   model_selection_mode: maximize

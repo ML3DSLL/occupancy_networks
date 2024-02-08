@@ -42,13 +42,13 @@ model:
   use_camera: false
   dmc_weight_prior: 10.
 training:
-  out_dir:  out/img/onet_convnext
+  out_dir:  out/img/onet_convnext_chairs
   batch_size: 16 #64
   print_every: 10
-  visualize_every: 1000
-  checkpoint_every: 500
-  validate_every: 100
-  backup_every: 1000
+  visualize_every: 2000
+  checkpoint_every: 1000
+  validate_every: 2000
+  backup_every: 100000
   eval_sample: false
   model_selection_metric: iou
   model_selection_mode: maximize

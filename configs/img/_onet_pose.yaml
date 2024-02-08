@@ -29,6 +29,7 @@ data:
   voxels_file: 'model.binvox'
   with_transforms: false
   metadata_file: matadata.yaml
+  pose_dim: 16
 model:
   decoder: cbatchnorm
   encoder: convnext
@@ -38,17 +39,18 @@ model:
   encoder_latent_kwargs: {}
   multi_gpu: false
   c_dim: 256
+  pose_embedding_dim: 16
   z_dim: 0
   use_camera: false
   dmc_weight_prior: 10.
 training:
-  out_dir:  out/img/onet_convnext
-  batch_size: 16 #64
+  out_dir:  out/img/onet_pose
+  batch_size: 32
   print_every: 10
-  visualize_every: 1000
-  checkpoint_every: 500
-  validate_every: 100
-  backup_every: 1000
+  visualize_every: 2000
+  checkpoint_every: 1000
+  validate_every: 2000
+  backup_every: 100000
   eval_sample: false
   model_selection_metric: iou
   model_selection_mode: maximize

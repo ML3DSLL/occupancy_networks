@@ -20,6 +20,8 @@ parser.add_argument('--no-cuda', action='store_true', help='Do not use cuda.')
 parser.add_argument('--exit-after', type=int, default=-1,
                     help='Checkpoint and exit after specified number of seconds'
                          'with exit code 2.')
+parser.add_argument('--max-steps', type=int, default=-1,
+                    help='Checkpoint and exit after specified number of steps')
 
 args = parser.parse_args()
 cfg = config.load_config(args.config, 'configs/default.yaml')
@@ -34,6 +36,7 @@ out_dir = cfg['training']['out_dir']
 batch_size = cfg['training']['batch_size']
 backup_every = cfg['training']['backup_every']
 exit_after = args.exit_after
+max_steps = args.max_steps
 
 model_selection_metric = cfg['training']['model_selection_metric']
 if cfg['training']['model_selection_mode'] == 'maximize':
@@ -159,7 +162,7 @@ while True:
                   % (epoch_it, it, loss))
 
         # Visualize output
-        if visualize_every > 0 and (it % visualize_every) == 0:
+        if visualize_every > 0 and (it % visualize_every) == 0 and it > 0:
             print('Visualizing')
             trainer.visualize(data_vis, with_pose)
 
@@ -196,3 +199,9 @@ while True:
             checkpoint_io.save('model.pt', epoch_it=epoch_it, it=it,
                                loss_val_best=metric_val_best)
             exit(3)
+        
+        if max_steps > 0 and it >= max_steps:
+            print('Maximum number of steps reached. Exiting.')
+            checkpoint_io.save('model.pt', epoch_it=epoch_it, it=it,
+                               loss_val_best=metric_val_best)
+            exit()
