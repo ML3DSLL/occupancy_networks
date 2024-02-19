@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+
 # import torch.nn.functional as F
 from torchvision import models
 from im2mesh.common import normalize_imagenet
@@ -7,7 +8,7 @@ from .convnext.convnextv2 import convnextv2_atto, convnextv2_tiny
 
 
 class ConvEncoder(nn.Module):
-    r''' Simple convolutional encoder network.
+    r"""Simple convolutional encoder network.
 
     It consists of 5 convolutional layers, each downsampling the input by a
     factor of 2, and a final fully-connected layer projecting the output to
@@ -15,7 +16,7 @@ class ConvEncoder(nn.Module):
 
     Args:
         c_dim (int): output dimension of latent embedding
-    '''
+    """
 
     def __init__(self, c_dim=128):
         super().__init__()
@@ -42,12 +43,12 @@ class ConvEncoder(nn.Module):
 
 
 class Resnet18(nn.Module):
-    r''' ResNet-18 encoder network for image input.
+    r"""ResNet-18 encoder network for image input.
     Args:
         c_dim (int): output dimension of the latent embedding
         normalize (bool): whether the input images should be normalized
         use_linear (bool): whether a final linear layer should be used
-    '''
+    """
 
     def __init__(self, c_dim, normalize=True, use_linear=True):
         super().__init__()
@@ -60,7 +61,7 @@ class Resnet18(nn.Module):
         elif c_dim == 512:
             self.fc = nn.Sequential()
         else:
-            raise ValueError('c_dim must be 512 if use_linear is False')
+            raise ValueError("c_dim must be 512 if use_linear is False")
 
     def forward(self, x):
         if self.normalize:
@@ -71,13 +72,13 @@ class Resnet18(nn.Module):
 
 
 class Resnet34(nn.Module):
-    r''' ResNet-34 encoder network.
+    r"""ResNet-34 encoder network.
 
     Args:
         c_dim (int): output dimension of the latent embedding
         normalize (bool): whether the input images should be normalized
         use_linear (bool): whether a final linear layer should be used
-    '''
+    """
 
     def __init__(self, c_dim, normalize=True, use_linear=True):
         super().__init__()
@@ -90,7 +91,7 @@ class Resnet34(nn.Module):
         elif c_dim == 512:
             self.fc = nn.Sequential()
         else:
-            raise ValueError('c_dim must be 512 if use_linear is False')
+            raise ValueError("c_dim must be 512 if use_linear is False")
 
     def forward(self, x):
         if self.normalize:
@@ -101,13 +102,13 @@ class Resnet34(nn.Module):
 
 
 class Resnet50(nn.Module):
-    r''' ResNet-50 encoder network.
+    r"""ResNet-50 encoder network.
 
     Args:
         c_dim (int): output dimension of the latent embedding
         normalize (bool): whether the input images should be normalized
         use_linear (bool): whether a final linear layer should be used
-    '''
+    """
 
     def __init__(self, c_dim, normalize=True, use_linear=True):
         super().__init__()
@@ -120,7 +121,7 @@ class Resnet50(nn.Module):
         elif c_dim == 2048:
             self.fc = nn.Sequential()
         else:
-            raise ValueError('c_dim must be 2048 if use_linear is False')
+            raise ValueError("c_dim must be 2048 if use_linear is False")
 
     def forward(self, x):
         if self.normalize:
@@ -131,25 +132,25 @@ class Resnet50(nn.Module):
 
 
 class Resnet101(nn.Module):
-    r''' ResNet-101 encoder network.
+    r"""ResNet-101 encoder network.
     Args:
         c_dim (int): output dimension of the latent embedding
         normalize (bool): whether the input images should be normalized
         use_linear (bool): whether a final linear layer should be used
-    '''
+    """
 
     def __init__(self, c_dim, normalize=True, use_linear=True):
         super().__init__()
         self.normalize = normalize
         self.use_linear = use_linear
-        self.features = models.resnet50(pretrained=True)
+        self.features = models.resnet101(pretrained=True)
         self.features.fc = nn.Sequential()
         if use_linear:
             self.fc = nn.Linear(2048, c_dim)
         elif c_dim == 2048:
             self.fc = nn.Sequential()
         else:
-            raise ValueError('c_dim must be 2048 if use_linear is False')
+            raise ValueError("c_dim must be 2048 if use_linear is False")
 
     def forward(self, x):
         if self.normalize:
@@ -160,12 +161,12 @@ class Resnet101(nn.Module):
 
 
 class ConvNeXtTiny(nn.Module):
-    r''' ConvNeXtTiny encoder network for image input.
+    r"""ConvNeXtTiny encoder network for image input.
     Args:
         c_dim (int): output dimension of the latent embedding
         normalize (bool): whether the input images should be normalized
         use_linear (bool): whether a final linear layer should be used
-    '''
+    """
 
     def __init__(self, c_dim, normalize=True, use_linear=True):
         super().__init__()
@@ -174,7 +175,7 @@ class ConvNeXtTiny(nn.Module):
 
         self.features = models.convnext_tiny(pretrained=True)
         self.features.classifier = nn.Sequential()
-    
+
         self.fc = nn.Linear(768, c_dim)
 
     def forward(self, x):
@@ -183,14 +184,15 @@ class ConvNeXtTiny(nn.Module):
         net = self.features(x)
         out = self.fc(net.reshape(-1, 768))
         return out
-    
+
+
 class ConvNeXt2Tiny(nn.Module):
-    r''' ConvNeXt2Tiny encoder network for image input.
+    r"""ConvNeXt2Tiny encoder network for image input.
     Args:
         c_dim (int): output dimension of the latent embedding
         normalize (bool): whether the input images should be normalized
         use_linear (bool): whether a final linear layer should be used
-    '''
+    """
 
     def __init__(self, c_dim, normalize=True, use_linear=True):
         super().__init__()
@@ -198,7 +200,9 @@ class ConvNeXt2Tiny(nn.Module):
         self.use_linear = use_linear
 
         self.features = convnextv2_tiny()
-        self.features.load_state_dict(torch.load('convnextv2_tiny_1k_224_ema.pt'), strict=False)
+        self.features.load_state_dict(
+            torch.load("convnextv2_tiny_1k_224_ema.pt"), strict=False
+        )
         self.features.head = nn.Sequential()
         self.fc = nn.Linear(768, c_dim)
 
@@ -208,7 +212,8 @@ class ConvNeXt2Tiny(nn.Module):
         net = self.features(x)
         out = self.fc(net.reshape(-1, 768))
         return out
-    
+
+
 class ConvNeXtTinyFP(nn.Module):
     def __init__(self, c_dim, normalize=True):
         super().__init__()

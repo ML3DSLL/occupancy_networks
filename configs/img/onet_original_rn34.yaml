@@ -31,7 +31,7 @@ data:
   metadata_file: matadata.yaml
 model:
   decoder: cbatchnorm
-  encoder: resnet18
+  encoder: resnet34
   encoder_latent: null
   decoder_kwargs: {}
   encoder_kwargs: {}
@@ -42,7 +42,7 @@ model:
   use_camera: false
   dmc_weight_prior: 10.
 training:
-  out_dir:  out/img/onet_original
+  out_dir:  out/img/onet_original_rn34
   batch_size: 16 #64
   print_every: 10
   visualize_every: 1000
