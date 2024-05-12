@@ -2,6 +2,7 @@
 ![Example 1](img/00.gif)
 ![Example 2](img/01.gif)
 ![Example 3](img/02.gif)
+
 This repository contains the code for our project for the course 'Machine Learning for 3D Geometry' at TUM [IN2392]. In this work, we had improved the performance of the model in terms of Intersection over Union (IoU) compared to the baseline [Occupancy Networks - Learning 3D Reconstruction in Function Space](https://avg.is.tuebingen.mpg.de/publications/occupancy-networks). Additionally, we had reduced the number of parameters to make the training of the model more efficient.
 
 
