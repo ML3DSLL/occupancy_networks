@@ -14,7 +14,7 @@ This repository contains the code for our project for the course 'Machine Learni
 
 ## Dataset
 
-For our experiments, we use [Pix3D] (https://github.com/xingyuansun/pix3d) as our new dataset which contains images, masks, meshes and camera positions.
+For our experiments, we use [Pix3D](https://github.com/xingyuansun/pix3d) as our new dataset which contains images, masks, meshes and camera positions.
 
 ## Modifications
 1. Replace the backbone ResNet with ConvNeXt
