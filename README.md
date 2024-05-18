@@ -23,4 +23,4 @@ For our experiments, we use [Pix3D](https://github.com/xingyuansun/pix3d) as our
 3. Incorporate camera pose information
 
 ## Results
-To see the experiment results, please check the final paper.
+To see the experiment results, please check the final paper [ML3D_Report.pdf] in the repository: 
